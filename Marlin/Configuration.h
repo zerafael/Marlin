@@ -634,7 +634,7 @@
 // Above this temperature the heater will be switched off.
 // This can protect components from overheating, but NOT from shorts and failures.
 // (Use MINTEMP for thermistor short/failure protection.)
-#define HEATER_0_MAXTEMP 320
+#define HEATER_0_MAXTEMP 305
 #define HEATER_1_MAXTEMP 275
 #define HEATER_2_MAXTEMP 275
 #define HEATER_3_MAXTEMP 275
@@ -1149,7 +1149,7 @@
 // Mechanical endstop with COM to ground and NC to Signal uses "false" here (most common setup).
 #define X_MIN_ENDSTOP_INVERTING true  // Set to true to invert the logic of the endstop.
 #define Y_MIN_ENDSTOP_INVERTING true  // Set to true to invert the logic of the endstop.
-#define Z_MIN_ENDSTOP_INVERTING true  // Set to true to invert the logic of the endstop.
+#define Z_MIN_ENDSTOP_INVERTING false  // Set to true to invert the logic of the endstop.
 #define I_MIN_ENDSTOP_INVERTING false // Set to true to invert the logic of the endstop.
 #define J_MIN_ENDSTOP_INVERTING false // Set to true to invert the logic of the endstop.
 #define K_MIN_ENDSTOP_INVERTING false // Set to true to invert the logic of the endstop.
@@ -2272,23 +2272,23 @@
 #define PREHEAT_2_TEMP_CHAMBER  35
 #define PREHEAT_2_FAN_SPEED     255 // Value from 0 to 255
 
-#define PREHEAT_1_LABEL       "ABS"
-#define PREHEAT_1_TEMP_HOTEND   240
-#define PREHEAT_1_TEMP_BED      110
-#define PREHEAT_1_TEMP_CHAMBER  35
-#define PREHEAT_1_FAN_SPEED     255 // Value from 0 to 255
-
-#define PREHEAT_3_LABEL       "PETG"
-#define PREHEAT_3_TEMP_HOTEND  225
-#define PREHEAT_3_TEMP_BED      70
+#define PREHEAT_3_LABEL       "ABS"
+#define PREHEAT_3_TEMP_HOTEND   240
+#define PREHEAT_3_TEMP_BED      110
 #define PREHEAT_3_TEMP_CHAMBER  35
 #define PREHEAT_3_FAN_SPEED     255 // Value from 0 to 255
 
-#define PREHEAT_4_LABEL       "TPU"
-#define PREHEAT_4_TEMP_HOTEND  220
-#define PREHEAT_4_TEMP_BED      60
+#define PREHEAT_4_LABEL       "PETG"
+#define PREHEAT_4_TEMP_HOTEND  225
+#define PREHEAT_4_TEMP_BED      70
 #define PREHEAT_4_TEMP_CHAMBER  35
 #define PREHEAT_4_FAN_SPEED     255 // Value from 0 to 255
+
+#define PREHEAT_5_LABEL       "TPU"
+#define PREHEAT_5_TEMP_HOTEND  220
+#define PREHEAT_5_TEMP_BED      60
+#define PREHEAT_5_TEMP_CHAMBER  35
+#define PREHEAT_5_FAN_SPEED     255 // Value from 0 to 255
 
 // @section motion
 
