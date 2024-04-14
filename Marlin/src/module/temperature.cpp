@@ -72,6 +72,10 @@
   #include "../feature/spindle_laser.h"
 #endif
 
+#if ENABLED(CREALITY_TOUCHSCREEN)
+  #include "../lcd/e3v2/creality/lcd_rts.h"
+#endif
+
 // MAX TC related macros
 #define TEMP_SENSOR_IS_MAX(n, M) (ENABLED(TEMP_SENSOR_##n##_IS_MAX##M) || (ENABLED(TEMP_SENSOR_REDUNDANT_IS_MAX##M) && REDUNDANT_TEMP_MATCH(SOURCE, E##n)))
 
@@ -812,11 +816,23 @@ volatile bool Temperature::raw_temps_ready = false;
                 temp_change_ms = ms + SEC_TO_MS(watch_temp_period);   // - move the expiration timer up
                 if (current_temp > watch_temp_target) heated = true;  // - Flag if target temperature reached
               }
-              else if (ELAPSED(ms, temp_change_ms))                   // Watch timer expired
+              else if (ELAPSED(ms, temp_change_ms)) {                   // Watch timer expired
+                #if ENABLED(CREALITY_TOUCHSCREEN)
+                  rtscheck.RTS_SndData(ExchangePageBase + 31, ExchangepageAddr);
+                  change_page_font = 31;
+                #endif
+
                 _temp_error(heater_id, FPSTR(str_t_heating_failed), GET_TEXT_F(MSG_HEATING_FAILED_LCD));
+              }
             }
-            else if (current_temp < target - (MAX_OVERSHOOT_PID_AUTOTUNE)) // Heated, then temperature fell too far?
+            else if (current_temp < target - (MAX_OVERSHOOT_PID_AUTOTUNE)) { // Heated, then temperature fell too far?
+              #if ENABLED(CREALITY_TOUCHSCREEN)
+                rtscheck.RTS_SndData(ExchangePageBase + 31, ExchangepageAddr);
+                change_page_font = 31;
+              #endif
+
               _temp_error(heater_id, FPSTR(str_t_thermal_runaway), GET_TEXT_F(MSG_THERMAL_RUNAWAY));
+            }
           }
         #endif
       } // every 2 seconds
@@ -830,7 +846,14 @@ volatile bool Temperature::raw_temps_ready = false;
         TERN_(DWIN_LCD_PROUI, DWIN_PidTuning(PID_TUNING_TIMEOUT));
         TERN_(EXTENSIBLE_UI, ExtUI::onPidTuning(ExtUI::result_t::PID_TUNING_TIMEOUT));
         TERN_(HOST_PROMPT_SUPPORT, hostui.notify(GET_TEXT_F(MSG_PID_TIMEOUT)));
-        SERIAL_ECHOPGM(STR_PID_AUTOTUNE); SERIAL_ECHOLNPGM(STR_PID_TIMEOUT);
+        SERIAL_ECHOPGM(STR_PID_AUTOTUNE);
+
+        #if ENABLED(CREALITY_TOUCHSCREEN)
+          rtscheck.RTS_SndData(ExchangePageBase + 31, ExchangepageAddr);
+          change_page_font = 31;
+        #endif
+
+        SERIAL_ECHOLNPGM(STR_PID_TIMEOUT);
         break;
       }
 
@@ -890,6 +913,7 @@ volatile bool Temperature::raw_temps_ready = false;
 
       // Run UI update
       TERN(DWIN_CREALITY_LCD, DWIN_Update(), ui.update());
+      TERN(CREALITY_TOUCHSCREEN, RTSUpdate(), ui.update());
     }
     wait_for_heatup = false;
 
@@ -1355,6 +1379,12 @@ void Temperature::maxtemp_error(const heater_id_t heater_id) {
   #if HAS_DWIN_E3V2_BASIC && (HAS_HOTEND || HAS_HEATED_BED)
     DWIN_Popup_Temperature(1);
   #endif
+
+  #if ENABLED(CREALITY_TOUCHSCREEN) && (HAS_HOTEND || HAS_HEATED_BED)
+    rtscheck.RTS_SndData(ExchangePageBase + 31, ExchangepageAddr);
+    change_page_font = 31;
+  #endif
+
   _temp_error(heater_id, F(STR_T_MAXTEMP), GET_TEXT_F(MSG_ERR_MAXTEMP));
 }
 
@@ -1362,6 +1392,12 @@ void Temperature::mintemp_error(const heater_id_t heater_id) {
   #if HAS_DWIN_E3V2_BASIC && (HAS_HOTEND || HAS_HEATED_BED)
     DWIN_Popup_Temperature(0);
   #endif
+
+  #if ENABLED(CREALITY_TOUCHSCREEN) && (HAS_HOTEND || HAS_HEATED_BED)
+    rtscheck.RTS_SndData(ExchangePageBase + 31, ExchangepageAddr);
+    change_page_font = 31;
+  #endif
+
   _temp_error(heater_id, F(STR_T_MINTEMP), GET_TEXT_F(MSG_ERR_MINTEMP));
 }
 
@@ -1562,7 +1598,17 @@ void Temperature::mintemp_error(const heater_id_t heater_id) {
   void Temperature::manage_hotends(const millis_t &ms) {
     HOTEND_LOOP() {
       #if ENABLED(THERMAL_PROTECTION_HOTENDS)
-        if (degHotend(e) > temp_range[e].maxtemp) maxtemp_error((heater_id_t)e);
+        if (degHotend(e) > temp_range[e].maxtemp) {
+
+          #if ENABLED(CREALITY_TOUCHSCREEN)
+            rtscheck.RTS_SndData(ExchangePageBase + 31, ExchangepageAddr);
+            change_page_font = 31;
+          #endif
+
+          SERIAL_ECHOLNPGM("HOTEND MAXTEMP E:", e, " T:", degHotend(e), " MAX:", temp_range[e].maxtemp);
+
+          maxtemp_error((heater_id_t)e);
+        }
       #endif
 
       TERN_(HEATER_IDLE_HANDLER, heater_idle[e].update(ms));
@@ -1581,6 +1627,12 @@ void Temperature::mintemp_error(const heater_id_t heater_id) {
             start_watching_hotend(e);               // If temp reached, turn off elapsed check
           else {
             TERN_(HAS_DWIN_E3V2_BASIC, DWIN_Popup_Temperature(0));
+
+            #if ENABLED(CREALITY_TOUCHSCREEN)
+              rtscheck.RTS_SndData(ExchangePageBase + 31, ExchangepageAddr);
+              change_page_font = 31;
+            #endif
+
             _temp_error((heater_id_t)e, FPSTR(str_t_heating_failed), GET_TEXT_F(MSG_HEATING_FAILED_LCD));
           }
         }
@@ -1596,7 +1648,14 @@ void Temperature::mintemp_error(const heater_id_t heater_id) {
   void Temperature::manage_heated_bed(const millis_t &ms) {
 
     #if ENABLED(THERMAL_PROTECTION_BED)
-      if (degBed() > BED_MAXTEMP) maxtemp_error(H_BED);
+      if (degBed() > BED_MAXTEMP) {
+        #if ENABLED(CREALITY_TOUCHSCREEN)
+            rtscheck.RTS_SndData(ExchangePageBase + 31, ExchangepageAddr);
+            change_page_font = 31;
+          #endif
+
+        maxtemp_error(H_BED);
+      }
     #endif
 
     #if WATCH_BED
@@ -1606,6 +1665,12 @@ void Temperature::mintemp_error(const heater_id_t heater_id) {
           start_watching_bed();                 // If temp reached, turn off elapsed check
         else {
           TERN_(HAS_DWIN_E3V2_BASIC, DWIN_Popup_Temperature(0));
+
+          #if ENABLED(CREALITY_TOUCHSCREEN)
+            rtscheck.RTS_SndData(ExchangePageBase + 31, ExchangepageAddr);
+            change_page_font = 31;
+          #endif
+
           _temp_error(H_BED, FPSTR(str_t_heating_failed), GET_TEXT_F(MSG_HEATING_FAILED_LCD));
         }
       }
@@ -2988,6 +3053,11 @@ void Temperature::init() {
       } // fall through
 
       case TRRunaway:
+        #if ENABLED(CREALITY_TOUCHSCREEN)
+          rtscheck.RTS_SndData(ExchangePageBase + 31, ExchangepageAddr);
+          change_page_font = 31;
+        #endif
+
         TERN_(HAS_DWIN_E3V2_BASIC, DWIN_Popup_Temperature(0));
         _temp_error(heater_id, FPSTR(str_t_thermal_runaway), GET_TEXT_F(MSG_THERMAL_RUNAWAY));
 
@@ -4300,6 +4370,12 @@ void Temperature::isr() {
       // If wait_for_heatup is set, temperature was reached, no cancel
       if (wait_for_heatup) {
         wait_for_heatup = false;
+
+        #if ENABLED(CREALITY_TOUCHSCREEN)
+          Update_Time_Value = RTS_UPDATE_VALUE;
+          rtscheck.RTS_SndData(ExchangePageBase + 10, ExchangepageAddr);
+        #endif
+
         #if HAS_DWIN_E3V2_BASIC
           HMI_flag.heat_flag = 0;
           duration_t elapsed = print_job_timer.duration();  // Print timer

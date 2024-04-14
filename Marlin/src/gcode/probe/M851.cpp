@@ -28,6 +28,10 @@
 #include "../../feature/bedlevel/bedlevel.h"
 #include "../../module/probe.h"
 
+#if ENABLED(CREALITY_TOUCHSCREEN)
+  #include "../../lcd/e3v2/creality/lcd_rts.h"
+#endif
+
 /**
  * M851: Set the nozzle-to-probe offsets in current units
  */
@@ -71,9 +75,14 @@ void GcodeSuite::M851() {
 
   if (parser.seenval('Z')) {
     const float z = parser.value_float();
-    if (WITHIN(z, Z_PROBE_OFFSET_RANGE_MIN, Z_PROBE_OFFSET_RANGE_MAX))
+    if (WITHIN(z, Z_PROBE_OFFSET_RANGE_MIN, Z_PROBE_OFFSET_RANGE_MAX)) {
+      #if ENABLED(CREALITY_TOUCHSCREEN)
+        zprobe_zoffset = z;
+        rtscheck.RTS_SndData(zprobe_zoffset * 100, AUTO_BED_LEVEL_ZOFFSET_VP);
+      #endif
+
       offs.z = z;
-    else {
+    } else {
       SERIAL_ECHOLNPGM("?Z out of range (", Z_PROBE_OFFSET_RANGE_MIN, " to ", Z_PROBE_OFFSET_RANGE_MAX, ")");
       ok = false;
     }
@@ -97,6 +106,12 @@ void GcodeSuite::M851_report(const bool forReplay/*=true*/) {
     , PSTR(" ;")
   );
   say_units();
+
+  #if ENABLED(CREALITY_TOUCHSCREEN)
+    zprobe_zoffset = probe.offset.z;
+    rtscheck.RTS_SndData(probe.offset.z * 100, AUTO_BED_LEVEL_ZOFFSET_VP);
+  #endif
+  
 }
 
 #endif // HAS_BED_PROBE

@@ -62,9 +62,21 @@
 
 // @section info
 
+// Release version
+#define SHORT_BUILD_VERSION "2.1.2.2-F4" // F401版本
+
 // Author info of this build printed to the host during boot and M115
 #define STRING_CONFIG_H_AUTHOR "(jose rafael, Ender 3 S1 PRO F4)" // Who made the changes.
+#define MACVERSION        STRING_CONFIG_H_AUTHOR
+#define SOFTVERSION       SHORT_BUILD_VERSION
+#define MACHINE_TYPE      "Ender-3 S1 Pro"
 //#define CUSTOM_VERSION_FILE Version.h // Path from the root directory (no quotes)
+#define FIRMWARE_VERSION  "2.1.2.2-UBL"
+#define SCREEN_VERSION    "UI20" 
+#define SCREEN_HW_VERSION "DWIN2021"
+#define HARDWARE_VERSION  "CR-FDM-v24S1_301"
+#define PRINT_SIZE        "235 * 225 * 270"
+#define CORP_WEBSITE      "marlinfw.org"
 
 /**
  * *** VENDORS PLEASE READ ***
@@ -133,6 +145,9 @@
  */
 //#define SERIAL_PORT_3 1
 //#define BAUDRATE_3 250000   // :[2400, 9600, 19200, 38400, 57600, 115200, 250000, 500000, 1000000] Enable to override BAUDRATE
+
+#define LCD_SERIAL_PORT 2
+#define LCD_BAUDRATE 115200
 
 // Enable the Bluetooth serial interface on AT90USB devices
 //#define BLUETOOTH
@@ -1935,6 +1950,8 @@
  */
 #define RESTORE_LEVELING_AFTER_G28
 //#define ENABLE_LEVELING_AFTER_G28
+
+#define MANUALL_BED_LEVEING_5POSITION {110,110, 30,30, 190,30, 190,190, 30,190}
 
 /**
  * Auto-leveling needs preheating

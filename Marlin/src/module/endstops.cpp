@@ -54,6 +54,10 @@
   #include "probe.h"
 #endif
 
+#if ENABLED(CREALITY_TOUCHSCREEN)
+  #include "../lcd/e3v2/creality/lcd_rts.h"
+#endif
+
 Endstops endstops;
 
 // private:
@@ -454,7 +458,23 @@ void Endstops::not_homing() {
   // If the last move failed to trigger an endstop, call kill
   void Endstops::validate_homing_move() {
     if (trigger_state()) hit_on_purpose();
-    else kill(GET_TEXT_F(MSG_KILL_HOMING_FAILED));
+    else {
+      #if ENABLED(CREALITY_TOUCHSCREEN)
+        waitway = 0;
+
+        // Displays the exception interface after 3 failures
+        // jump2page_num(PG_ABNORMAL);
+        // change_page_font = PG_ABNORMAL;
+        // Failed to homing move
+        // rtscheck.RTS_SndData(Error_202, ABNORMAL_PAGE_TEXT_VP);
+        // rtscheck.RTS_SndData(0, Window_fault_probe_VP);
+        // rtscheck.RTS_SndData(0, Window_fault_home_VP);
+
+        errorway = 2;
+      #endif
+
+      kill(GET_TEXT_F(MSG_KILL_HOMING_FAILED));
+    }
   }
 #endif
 

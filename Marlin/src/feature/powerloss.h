@@ -105,6 +105,11 @@ typedef struct {
     #endif
   #endif
 
+  #if ENABLED(CREALITY_TOUCHSCREEN)
+    //recovery flag 
+    uint8_t recovery_flag;
+  #endif
+
   // SD Filename and position
   char sd_filename[MAXPATHNAMELENGTH];
   volatile uint32_t sdpos;

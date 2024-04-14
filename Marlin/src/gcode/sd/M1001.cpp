@@ -55,6 +55,10 @@
   #include "../../feature/host_actions.h"
 #endif
 
+#if ENABLED(CREALITY_TOUCHSCREEN)
+  #include "../../lcd/e3v2/creality/lcd_rts.h"
+#endif
+
 #ifndef PE_LEDS_COMPLETED_TIME
   #define PE_LEDS_COMPLETED_TIME (30*60)
 #endif
@@ -110,6 +114,13 @@ void GcodeSuite::M1001() {
 
   // Re-select the last printed file in the UI
   TERN_(SD_REPRINT_LAST_SELECTED_FILE, ui.reselect_last_file());
+
+  #if BOTH(HAS_CUTTER, CREALITY_TOUCHSCREEN)
+    if(laser_device.is_laser_device()){ 
+      rtscheck.RTS_SndData(ExchangePageBase + 60, ExchangepageAddr);
+      change_page_font = 60;
+    }
+  #endif
 }
 
 #endif // HAS_MEDIA

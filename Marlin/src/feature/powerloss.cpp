@@ -65,6 +65,10 @@ uint32_t PrintJobRecovery::cmd_sdpos, // = 0
 #define DEBUG_OUT ENABLED(DEBUG_POWER_LOSS_RECOVERY)
 #include "../core/debug_out.h"
 
+#if ENABLED(CREALITY_TOUCHSCREEN)
+  #include "../lcd/e3v2/creality/lcd_rts.h"
+#endif
+
 PrintJobRecovery recovery;
 
 #if DISABLED(BACKUP_POWER_SUPPLY)
@@ -244,6 +248,12 @@ void PrintJobRecovery::save(const bool force/*=false*/, const float zraise/*=POW
     // Misc. Marlin flags
     info.flag.dryrun = !!(marlin_debug_flags & MARLIN_DEBUG_DRYRUN);
     info.flag.allow_cold_extrusion = TERN0(PREVENT_COLD_EXTRUSION, thermalManager.allow_cold_extrude);
+
+    #if ENABLED(CREALITY_TOUCHSCREEN)
+      //recovery flag 
+      // info.recovery_flag = true;
+      info.recovery_flag = PoweroffContinue;
+    #endif
 
     write();
   }
